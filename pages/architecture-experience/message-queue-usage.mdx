@@ -211,9 +211,9 @@ waiker-data-websocket 은 `websocket-queue` 의 데이터를 받아서 온전히
 
 ## 아쉬웠던 점
 
-### Outbox 로의 전환
+### 작업대기열 방식을 EDA로 전환
 
-그 당시 인스턴스 각각은 Producer, Consumer, Queue 로 구성했습니다. 여기서 Queue 는 Hazelcast 를 활용했고 [spring-data-hazelcast](https://github.com/hazelcast/spring-data-hazelcast) 를 통해서 각 요청을 Set, Map\<String, List\<T\>\> 을 통해서 Write-Back 캐싱전략을 구현했습니다.
+그 당시 인스턴스 각각은 Producer, Consumer, Queue 로 구성했습니다. 여기서 Queue 는 Hazelcast 를 활용했고 [spring-data-hazelcast](https://github.com/hazelcast/spring-data-hazelcast) 를 통해서 각 요청을 Set, Map\<String, List\<T\>\> 을 통해서 FIFO Queue 를 흉내낸 Write-Back 캐싱전략을 구현했습니다.
 
 
 
@@ -221,7 +221,10 @@ waiker-data-websocket 은 `websocket-queue` 의 데이터를 받아서 온전히
 
 <br/>
 
-실시간 트래픽이 높고, 데이터의 수정이 자주 발생하는 증권데이터의 특성을 고려해서 Outbox 로 사용할 데이터 스토리지를 결정해야 하는데, 데이터의 수정이 빈번할 경우 관계형 DB의 경우 MVCC 로 인한 이슈가 발생합니다. 따라서 작업 데이터의 대기열 용도의 Outbox 로 사용할 데이터베이스를 지금 시점에서 이 부분에 대한 결정을 내린다면, MongoDB 또는 influxDB와 같은 NoSQL 기반의 데이터베이스의 컬렉션을 두었을 것 같습니다.<br/>
+이렇게 하는 것은 요청의 id와 id 에 해당하는 데이터들을 작업 대기열로 기록하는 방식이고 누구나 떠올릴 수 있는 작업대기열 소비 방식이라고 생각합니다. 그리고 주식 데이터의 특성상 초/분/시/일 구간 대에 이미 들어온 현재가 데이터가 있다면 현재가를 업데이트하고, 고가,저가, 종가가 수시로 바뀌기 때문에 MVCC 이슈가 생깁니다. 데이터의 insert 보다 수정이 더 많을 경우 PostgreSQL 의 경우 잦은 MVCC 수행 시에 Dead Tuple 이 발생하는데, 이 Dead Tuple 이 트리구조여서 최악의 경우 `N^M` 정도의 디스크 소모가 발생합니다.<br/>
 
-<br/>
+만약 프로젝트를 조금 더 발전시킨다면 위와 같이 작업대기열에 작업을 쌓아두는 대신, 개별 데이터 한건 하나 하나를 독립적인 개별 이벤트로 처리하고, 메시징 ID를  SAGA ID 로 취급해서 함께 Outbox 데이터베이스에 저장하는 방식을 선택할 것 같습니다.<br/>
 
+이렇게 개별적으로 쌓인 이벤트들을 특정 주기마다 스케쥴링 방식으로 특정 사이즈만큼의 데이터를 읽어들여서 일정크기의 소규모 단위 배치 작업을 변화를 한다면 MVCC 이슈는 피하면서 개별 데이터의 배치 처리가 가능해집니다. 이렇게 Event 단위의 데이터 처리는 하드코딩으로도 개발할 수도 있지만 axon framework의 힘을 어느 정도는 빌려서 범용성을 높인다면 좋을 것 같습니다.<br/>
+
+이렇게 개별 작업 대기열 방식 대신 독립된 이벤트로 저장하는 방식은 이벤트를 기록할수 있고, 원자적으로 처리할 수 있고, 무결성제약조건을 만족시키며, 다른 이벤트와 독립된 방식으로 저장될 수 있기에 개별 이벤트를 트랜잭션 단위로 처리할 수 있는 조건을 만족시킬 수 있다는 장점이 생깁니다. 그리고 MVCC 이슈를 피해서 데이터의 배치 저장이 가능하게 한다는 점 역시 만족시키게 됩니다.<br/><br/>
