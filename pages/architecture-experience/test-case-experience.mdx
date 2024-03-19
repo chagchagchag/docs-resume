@@ -38,23 +38,76 @@
 
 
 
-## Hazelcast 캐시 자료구조 테스트 코드 검증
+## Tick 집계 코드 테스트 코드 검증
+
+레피니티브로부터 전달되는 데이터는 시가/고가/저가/종가가 갖추어진채로 전달되는 경우도 있고, 단순히 현재가만 전달해주는 경우도 있습니다. 처음 개발을 시작할 때에는 이런 데이터 유형이 보통 어떤 시점에 오는지를 몰랐기에 두가지 테스트 케이스를 모두 작성했습니다. <br/>
+
+**시가/고가/저가/종가 테스트코드**
+
+![](./img/test-case-experience/ohlc-field-mapping.png)
+
+<br/>
+
+시가/고가/종가/저가 데이터 없이 현재가만 메시지로 오는 경우에 대한 데이터 매핑
+
+![](./img/test-case-experience/trdprc-field-mapping.png)
+
+나중에 운영 경험이 3개월 이상 쌓이면서 부터 시가/고가/저가/종가를 같이 메시지로 보내주는 경우는 확률적으로 개장 전후 5분내외, 장 마감 전후 5분 내외에 발생한다는 사실을 알게되었습니다.<br/>
+
+이 외에도 각종 시/고/저/종 가격을 집계하는 코드들에 대해 모두 단위 테스트 코드를 모두 일일이 만들어두어서 테스트 케이스화 하고, 명세화해서 해당 기능의 확인과 검증을 쉽게했고, 배포 시에 자신감을 갖고 배포할 수 있게 되었습니다. 
+
+![](./img/test-case-experience/tick-buffer-tests-all.png)
+
+
 
 
 
 ## 비동기 로직의 호출 여부 테스트 코드 검증
 
+listener 로직에서는 ExecutorService 기반으로 tick 집계 로직을 수행했습니다. tick 집계시에 IO 작업은 캐시에 쌓아두기만 하기에 응답의 지연은 없었고, ExecutorService 의 동작이 올바르게 동작하는지를 검증하기 위해 아래와 같은 코드를 작성했습니다.<br/>
 
+당시에는 builder 를 사용했었는데, 현시점에서 다시 돌아봤을 때, 테스트 코드 작성시 필요한 TestFixture 를 테스트 스코프에 별도로 테스트 케이스마다 구현을 해두어서 별도로 테스트 케이스를 정의했을 것 같습니다.
 
-## Tick 집계 코드 테스트 코드 검증
+![](./img/test-case-experience/executor-service-test.png)
+
+<br/>
 
 
 
 ## docker-compose, testcontainer 를 이용한 Database 코드 검증
 
+docker-compose 를 testcontainer 를 기반으로 구동해서 DAO 로직의 테스트를 검증했었는데 그 테스트 코드는 아래와 같습니다.
 
+![](./img/test-case-experience/test-docker-1.png)
+
+<br/>
+
+
+
+이렇게 모든 실시간 데이터 처리 작업을 하는 데이터 모듈들은 아래와 같이 모두 테스트코드화 했습니다.
+
+![](./img/test-case-experience/test-docker-2.png)
+
+<br/>
+
+
+
+그리고 위의 코드에서 사용하는 docker-compose.yml 파일은 아래와 같습니다.
+
+![](./img/test-case-experience/test-docker-3.png)
+
+<br/>
 
 
 
 ## 전반적인 테스트 코드들
 
+이 외에도 굉장히 많은 테스트 코드들을 작성해두었는데, 아래와 같이 굉장히 많은 테스트 코드를 남겨두었고 대부분 어떤 특정 상태에 의존되지 않도록 하면서 배포 전에 모든 테스트를 돌려봤을 때 실패하는지를 1차적으로 검증할 수 있는 간편한 수단이었습니다. 이렇게 해두면서 1인 개발 체제에서 힘에 부치던 상황에서 배포하려는 기능에 대해 자신감을 가지게 되었던 기억이 있습니다.
+
+![](./img/test-case-experience/test-cases-1.png)
+
+<br/>
+
+
+
+![](./img/test-case-experience/test-cases-2.png)
