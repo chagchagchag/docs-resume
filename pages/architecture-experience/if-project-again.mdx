@@ -11,7 +11,7 @@ waiker-data-live, waiker-data-websocket 은 데이터를 Serving 하는 역할�
 
 
 
-### 작업대기열 방식을 EDA로 전환
+## 작업대기열 방식을 EDA로 전환
 
 그 당시 인스턴스 각각은 Producer, Consumer, Queue 로 구성했습니다. 여기서 Queue 는 Hazelcast 를 활용했고 [spring-data-hazelcast](https://github.com/hazelcast/spring-data-hazelcast) 를 통해서 각 요청을 Set, Map\<String, List\<T\>\> 을 통해서 FIFO Queue 를 흉내낸 Write-Back 캐싱전략을 구현했습니다.
 
