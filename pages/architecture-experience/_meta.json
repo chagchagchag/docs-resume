@@ -1,5 +1,4 @@
 {
-    "intro": "Intro",
     "message-queue-usage": "메시지 큐 기반 시스템 분해작업",
     "consumer-thread-optimization": "스레드 최적화",
     "test-case-experience": "테스트케이스 경험",
