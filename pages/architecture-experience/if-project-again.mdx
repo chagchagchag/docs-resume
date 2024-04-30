@@ -32,7 +32,7 @@ waiker-data-live, waiker-data-websocket 은 데이터를 Serving 하는 역할�
 
 > waiker-data-websocket 의 경우 여러 개의 docker instance 또는 pod 으로 띄우고 디스커버리 서버가 웹소켓 인스턴스들을 로드밸런싱 하게끔 해줘야 합니다. 이렇게 디스커버리 서버를 통해서 특정 웹소켓 인스턴스로 부하가 몰리지 않도록 디스커버리 서버를 활용할 경우 웹소켓의 경우에도 분산환경을 적용 가능합니다.<br/>
 >
-> 프로젝트 당시에는 SPOF(Single Point Of Failure) 이슈도 있고 비용절감을 위해서 단일 노드 대신 다중화 구조로 전환하려고 했지만, 설득에 실패했었습니다. 현재 웨이커 채용공고를 보면, 아마도 아직까지도 SPOF(Single Point Of Failure) 이슈에 취약한 구조로 방치해둔 것으로 보입니다.<br/>
+> 프로젝트 당시에는 SPOF(Single Point Of Failure) 이슈도 있고 비용절감을 위해서 단일 노드 대신 컨테이너 기반의 다중화 구조로 전환하려고 했지만, 설득에 실패했었습니다. 현재 웨이커 채용공고를 보면, 아마도 아직까지도 SPOF(Single Point Of Failure) 이슈에 취약한 구조로 방치해둔 것으로 보입니다.<br/>
 
 <br/>
 
